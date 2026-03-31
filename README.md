@@ -8,7 +8,13 @@ A modular, Python-based tool for comprehensive IP and website analysis. Designed
 - **DNS Reconnaissance**: Fetch A, MX, TXT, CNAME, and NS records
 - **IP Intelligence**: Geolocation, ISP, and ASN data using ip-api.com
 - **Port Scanning**: Scan common ports (21, 22, 23, 25, 53, 80, 443, 8080, 3389) with banner grabbing
+- **Async Port Scanning**: Concurrent port scanning with asyncio for improved speed
 - **SSL/TLS Analysis**: Extract certificate details, expiry dates, and Subject Alternative Names (SANs)
+- **WHOIS Lookup**: Domain and IP ownership information
+- **Subdomain Enumeration**: Discover common subdomains using DNS resolution
+- **HTTP Header Analysis**: Extract and analyze response headers for security insights
+- **Web Service Fingerprinting**: Identify technology stack, CMS, and frameworks
+- **Export Results**: Save reconnaissance data in JSON, CSV, or GeoJSON formats
 - **Clean CLI Interface**: Argument parsing with flexible module selection
 - **Comprehensive Error Handling**: Timeout protection and informative error messages
 
@@ -48,6 +54,30 @@ python recon_tool.py example.com --ports
 python recon_tool.py example.com --ssl
 ```
 
+### New Features
+
+```bash
+# WHOIS lookup
+python recon_tool.py example.com --whois
+
+# Subdomain enumeration
+python recon_tool.py example.com --subdomains
+
+# HTTP header analysis
+python recon_tool.py example.com --headers
+
+# Web service fingerprinting
+python recon_tool.py example.com --fingerprint
+
+# Async port scanning (faster)
+python recon_tool.py example.com --ports --async-ports
+
+# Export results
+python recon_tool.py example.com --export json --output results
+python recon_tool.py example.com --export csv --output results
+python recon_tool.py example.com --export geojson --output geomap
+```
+
 ### Advanced Examples
 
 ```bash
@@ -57,8 +87,11 @@ python recon_tool.py example.com --all
 # Combine specific modules
 python recon_tool.py example.com --dns --ports --ssl
 
+# Comprehensive scan with export
+python recon_tool.py example.com --all --export json --output full_scan
+
 # Analyze an IP address
-python recon_tool.py 8.8.8.8 --ip-intel --ports
+python recon_tool.py 8.8.8.8 --ip-intel --ports --whois
 
 # Help
 python recon_tool.py --help
@@ -140,6 +173,81 @@ Extracts SSL/TLS certificate information using Python's ssl library.
 - DNS resolution failures
 - Port connectivity issues
 
+### WHOIS Module (`WHOISModule`)
+Retrieves WHOIS information for domains and IP addresses.
+
+**Data Retrieved**:
+- Registrar information
+- Creation, update, and expiration dates
+- Registrant information
+- Raw WHOIS data
+
+**Implementation**:
+- Primary: python-whois library
+- Fallback: Socket-based WHOIS lookup to whois.iana.org
+
+### Subdomain Enumeration Module (`SubdomainModule`)
+Discovers common subdomains through DNS resolution attempts.
+
+**Features**:
+- 150+ common subdomain wordlist
+- Parallel DNS lookups
+- Only reports successfully resolved subdomains
+
+### HTTP Header Analysis Module (`HeaderAnalysisModule`)
+Extracts and analyzes HTTP response headers.
+
+**Headers Analyzed**:
+- Server version
+- Powered-By information
+- Content-Type
+- Security headers (CSP, HSTS, X-Frame-Options, etc.)
+- Custom application headers
+
+**Protocols Supported**:
+- HTTP
+- HTTPS
+- Automatic protocol detection and fallback
+
+### Web Service Fingerprinting Module (`FingerprintModule`)
+Identifies technology stack, CMS, and frameworks.
+
+**Technologies Identified**:
+- Web Servers: Apache, Nginx, IIS, Lighttpd, Cloudflare
+- CMS: WordPress, Joomla, Drupal, Magento
+- Languages: PHP, ASP.NET, Python, Node.js, Java, Ruby
+- Frameworks: Django, Flask, Express, Spring, Rails
+- Frontend: Bootstrap, jQuery, React, Vue, Angular
+
+### Async Port Scanner Module (`AsyncPortScannerModule`)
+Performs concurrent port scanning using asyncio for speed improvement.
+
+**Features**:
+- Concurrent connections to multiple ports
+- ~3x faster than synchronous scanning
+- Fallback to synchronous scanner if aiohttp unavailable
+- Service banner grabbing for all ports
+
+**Usage**:
+```bash
+python recon_tool.py example.com --ports --async-ports
+```
+
+### Export Module (`ExportModule`)
+Exports reconnaissance results in multiple formats.
+
+**Formats Supported**:
+- **JSON**: Complete data structure with all fields
+- **CSV**: Flattened data format for spreadsheet analysis
+- **GeoJSON**: Location data for mapping visualization
+
+**Usage**:
+```bash
+python recon_tool.py example.com --export json --output results
+python recon_tool.py example.com --export csv --output results
+python recon_tool.py example.com --export geojson --output geomap
+```
+
 ## Output Example
 
 ```
@@ -209,15 +317,31 @@ recon_tool.py
 │   ├── DNSRecord
 │   ├── IPIntel
 │   ├── PortStatus
-│   └── SSLInfo
+│   ├── SSLInfo
+│   ├── WHOISInfo
+│   ├── HeaderInfo
+│   ├── Fingerprint
+│   └── GeoIPData
 ├── DNS Module
 │   └── DNSModule class
 ├── IP Intelligence Module
 │   └── IPIntelModule class
 ├── Socket Scanner Module
 │   └── SocketScannerModule class
+├── Async Port Scanner Module
+│   └── AsyncPortScannerModule class
 ├── SSL Certificate Module
 │   └── SSLModule class
+├── WHOIS Module
+│   └── WHOISModule class
+├── Subdomain Enumeration Module
+│   └── SubdomainModule class
+├── HTTP Header Analysis Module
+│   └── HeaderAnalysisModule class
+├── Web Service Fingerprinting Module
+│   └── FingerprintModule class
+├── Export Module
+│   └── ExportModule class
 ├── Formatter & CLI
 │   ├── ResultFormatter class
 │   └── main() function
@@ -256,12 +380,19 @@ This tool demonstrates several cybersecurity and networking concepts:
 ## Timeouts & Performance
 
 - DNS queries: 5 seconds
-- Port scanning: 3 seconds per port (total ~27 seconds for 9 ports)
+- Port scanning (sync): 3 seconds per port (total ~27 seconds for 9 ports)
+- Port scanning (async): ~3-5 seconds total (3x faster with --async-ports)
 - Banner grabbing: 2 seconds per connection
 - SSL certificate retrieval: 10 seconds
 - IP intelligence API: 10 seconds
+- Subdomain enumeration: ~30-60 seconds (depends on domain responsiveness)
+- WHOIS lookup: 5 seconds
+- Header analysis: 5 seconds per protocol attempt
 
-Total execution time typically ranges from 30-60 seconds depending on network conditions.
+**Total execution time**:
+- Default modules: 30-60 seconds
+- All modules: 2-3 minutes
+- With async ports: 1-2 minutes
 
 ## Troubleshooting
 
