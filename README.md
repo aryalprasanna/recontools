@@ -1,416 +1,98 @@
-
 ReconTools
 
 A modular, Python-based tool for comprehensive IP and website analysis. Designed for educational purposes and authorized security testing.
 
-## Features
-
-- **DNS Reconnaissance**: Fetch A, MX, TXT, CNAME, and NS records
-- **IP Intelligence**: Geolocation, ISP, and ASN data using ip-api.com
-- **Port Scanning**: Scan common ports (21, 22, 23, 25, 53, 80, 443, 8080, 3389) with banner grabbing
-- **Async Port Scanning**: Concurrent port scanning with asyncio for improved speed
-- **SSL/TLS Analysis**: Extract certificate details, expiry dates, and Subject Alternative Names (SANs)
-- **WHOIS Lookup**: Domain and IP ownership information
-- **Subdomain Enumeration**: Discover common subdomains using DNS resolution
-- **HTTP Header Analysis**: Extract and analyze response headers for security insights
-- **Web Service Fingerprinting**: Identify technology stack, CMS, and frameworks
-- **Export Results**: Save reconnaissance data in JSON, CSV, or GeoJSON formats
-- **Clean CLI Interface**: Argument parsing with flexible module selection
-- **Comprehensive Error Handling**: Timeout protection and informative error messages
-
 ## Installation
-
+ 
 ### Prerequisites
 - Python 3.7+
 - pip
-
+ 
 ### Setup
-
+ 
 ```bash
 # Download the repository
 git clone https://github.com/aryalprasanna/recontools.git
-
+ 
 # Clone/navigate to the repository
 cd /path/to/recon_tool
 
 # Install dependencies
 pip install -r requirements.txt
 ```
+**Note**: The tool uses only standard library modules except for `dnspython`. 
 
-**Note**: The tool uses only standard library modules except for `dnspython`. The IP intelligence API (ip-api.com) requires no authentication.
-
-## Usage
-
-### Basic Usage
-
+**To use the tool:**
 ```bash
-# Full reconnaissance (all modules)
-python recon_tool.py example.com
-
-# Specific module only
-python recon_tool.py example.com --dns
-python recon_tool.py example.com --ip-intel
-python recon_tool.py example.com --ports
-python recon_tool.py example.com --ssl
+python main.py example.com
+python main.py example.com --all --export json
+python main.py example.com --help
 ```
 
-### New Features
+## 📁 Project Structure
 
-```bash
-# WHOIS lookup
-python recon_tool.py example.com --whois
-
-# Subdomain enumeration
-python recon_tool.py example.com --subdomains
-
-# HTTP header analysis
-python recon_tool.py example.com --headers
-
-# Web service fingerprinting
-python recon_tool.py example.com --fingerprint
-
-# Async port scanning (faster)
-python recon_tool.py example.com --ports --async-ports
-
-# Export results
-python recon_tool.py example.com --export json --output results
-python recon_tool.py example.com --export csv --output results
-python recon_tool.py example.com --export geojson --output geomap
+```
+recontools/
+├── main.py                    # Entry point
+├── core/
+│   ├── __init__.py
+│   └── dataclasses.py        # 8 data structures
+├── modules/                   # 10 independent modules
+│   ├── dns_recon.py          # DNS lookups
+│   ├── ip_intel.py           # IP geolocation
+│   ├── port_scanner.py       # Port scanning
+│   ├── ssl_check.py          # SSL analysis
+│   ├── whois_lookup.py       # WHOIS lookups
+│   ├── subdomain_enum.py     # Subdomain enumeration
+│   ├── header_analysis.py    # HTTP headers
+│   ├── fingerprinting.py     # Tech fingerprinting
+│   ├── async_port_scan.py    # Async port scanning
+│   └── geoip_map.py          # GeoIP mapping
+├── utils/                     # Utilities
+    ├── formatter.py          # Output formatting
+    └── exporter.py           # JSON/CSV/GeoJSON export
 ```
 
-### Advanced Examples
+## 🚀 Usage Examples
 
 ```bash
-# Run all modules explicitly
-python recon_tool.py example.com --all
+# Basic reconnaissance (default modules: DNS, IP Intel, Ports, SSL)
+python main.py example.com
 
-# Combine specific modules
-python recon_tool.py example.com --dns --ports --ssl
+# Specific modules
+python main.py example.com --dns --ssl --headers
 
-# Comprehensive scan with export
-python recon_tool.py example.com --all --export json --output full_scan
+# All modules
+python main.py example.com --all
 
-# Analyze an IP address
-python recon_tool.py 8.8.8.8 --ip-intel --ports --whois
+# With export
+python main.py example.com --all --export json --output results
+
+# Async port scanning (3x faster)
+python main.py example.com --async-ports
 
 # Help
-python recon_tool.py --help
+python main.py --help
 ```
 
-## Module Documentation
+##Troubleshooting
 
-### DNS Module (`DNSModule`)
-Queries DNS records using dnspython with a 5-second timeout.
+**Import errors?**
+- Ensure you're in the project root directory
+- Verify all `__init__.py` files exist
+- Check Python path includes project root
 
-**Records fetched**:
-- **A Records**: IPv4 addresses
-- **MX Records**: Mail exchange servers
-- **TXT Records**: Text records (SPF, DKIM, DMARC)
-- **CNAME Records**: Canonical name aliases
-- **NS Records**: Nameservers
-
-**Error Handling**:
-- NXDOMAIN (domain doesn't exist)
-- No Answer (record type doesn't exist)
-- Connection timeouts
-
-### IP Intelligence Module (`IPIntelModule`)
-Retrieves geolocation and ISP data from ip-api.com (free API, no authentication required).
-
-**Data Retrieved**:
-- Country, Region, City
-- ISP Name
-- ASN (Autonomous System Number)
-- GPS Coordinates (Latitude/Longitude)
-
-**Limitations**:
-- Rate limited to ~45 requests/minute on free tier
-- Requires internet connectivity
-
-**Error Handling**:
-- HTTP errors
-- Connection timeouts
-- Invalid JSON responses
-
-### Socket Scanner Module (`SocketScannerModule`)
-Lightweight port scanner using raw sockets with banner grabbing.
-
-**Default Ports**:
-- 21 (FTP)
-- 22 (SSH)
-- 23 (Telnet)
-- 25 (SMTP)
-- 53 (DNS)
-- 80 (HTTP)
-- 443 (HTTPS)
-- 8080 (HTTP-Alt)
-- 3389 (RDP)
-
-**Port States**:
-- **OPEN**: Successfully connected
-- **CLOSED**: Connection refused
-- **FILTERED**: Timeout (likely firewalled)
-- **ERROR**: Connection error
-
-**Banner Grabbing**:
-- Attempts to read service banners from open ports
-- Special handling for HTTP/HTTPS (sends HEAD request)
-- Limits banner size to 100 characters in output
-
-### SSL Module (`SSLModule`)
-Extracts SSL/TLS certificate information using Python's ssl library.
-
-**Data Extracted**:
-- Certificate Subject
-- Issuer information
-- Valid From / Valid Until dates
-- Expiration status
-- Subject Alternative Names (SANs)
-
-**Error Handling**:
-- SSL errors (self-signed, expired, etc.)
-- Connection timeouts
-- DNS resolution failures
-- Port connectivity issues
-
-### WHOIS Module (`WHOISModule`)
-Retrieves WHOIS information for domains and IP addresses.
-
-**Data Retrieved**:
-- Registrar information
-- Creation, update, and expiration dates
-- Registrant information
-- Raw WHOIS data
-
-**Implementation**:
-- Primary: python-whois library
-- Fallback: Socket-based WHOIS lookup to whois.iana.org
-
-### Subdomain Enumeration Module (`SubdomainModule`)
-Discovers common subdomains through DNS resolution attempts.
-
-**Features**:
-- 150+ common subdomain wordlist
-- Parallel DNS lookups
-- Only reports successfully resolved subdomains
-
-### HTTP Header Analysis Module (`HeaderAnalysisModule`)
-Extracts and analyzes HTTP response headers.
-
-**Headers Analyzed**:
-- Server version
-- Powered-By information
-- Content-Type
-- Security headers (CSP, HSTS, X-Frame-Options, etc.)
-- Custom application headers
-
-**Protocols Supported**:
-- HTTP
-- HTTPS
-- Automatic protocol detection and fallback
-
-### Web Service Fingerprinting Module (`FingerprintModule`)
-Identifies technology stack, CMS, and frameworks.
-
-**Technologies Identified**:
-- Web Servers: Apache, Nginx, IIS, Lighttpd, Cloudflare
-- CMS: WordPress, Joomla, Drupal, Magento
-- Languages: PHP, ASP.NET, Python, Node.js, Java, Ruby
-- Frameworks: Django, Flask, Express, Spring, Rails
-- Frontend: Bootstrap, jQuery, React, Vue, Angular
-
-### Async Port Scanner Module (`AsyncPortScannerModule`)
-Performs concurrent port scanning using asyncio for speed improvement.
-
-**Features**:
-- Concurrent connections to multiple ports
-- ~3x faster than synchronous scanning
-- Fallback to synchronous scanner if aiohttp unavailable
-- Service banner grabbing for all ports
-
-**Usage**:
+**Missing dependencies?**
 ```bash
-python recon_tool.py example.com --ports --async-ports
+pip install -r requirements.txt
 ```
 
-### Export Module (`ExportModule`)
-Exports reconnaissance results in multiple formats.
+## 🤝 Contributing
 
-**Formats Supported**:
-- **JSON**: Complete data structure with all fields
-- **CSV**: Flattened data format for spreadsheet analysis
-- **GeoJSON**: Location data for mapping visualization
+When adding new features:
+1. Create module in `modules/` if it's a new reconnaissance type
+2. Add dataclasses to `core/dataclasses.py` if needed
+3. Update `modules/__init__.py` to export new module
+4. Add CLI logic to `main.py`
+5. Update documentation
 
-**Usage**:
-```bash
-python recon_tool.py example.com --export json --output results
-python recon_tool.py example.com --export csv --output results
-python recon_tool.py example.com --export geojson --output geomap
-```
-
-## Output Example
-
-```
-======================================================================
-  RECONNAISSANCE: example.com
-======================================================================
-
-[*] Resolving example.com...
-    Resolved to: 93.184.216.34
-
-======================================================================
-  DNS Records
-------================================================================
-
-  A Records:
-    → 93.184.216.34
-
-  MX Records:
-    → 0 .
-
-  TXT Records:
-    → "v=spf1 -all"
-
-[*] IP Intelligence
-----------------------------------------------------------------------
-
-  IP Address:     93.184.216.34
-  Country:        United States
-  Region:         California
-  City:           Los Angeles
-  ISP:            IANA Reserved
-  ASN:            AS15169 Google LLC
-  Coordinates:    34.0522, -118.2437
-
-[*] Port Scan Results
-----------------------------------------------------------------------
-
-  Port     Service              Status     Banner
-  ------------------------------------------------------------------
-  80       HTTP                 OPEN       HTTP/1.1 200 OK...
-  443      HTTPS                OPEN       HTTP/1.1 200 OK...
-
-  Summary: 2 open, 7 closed, 0 filtered
-
-[*] SSL/TLS Certificate
-----------------------------------------------------------------------
-
-  Subject:        example.com
-  Issuer:         Let's Encrypt Authority X3
-  Valid From:     Jan 1 00:00:00 2023 GMT
-  Valid Until:    Dec 31 23:59:59 2025 GMT [VALID]
-
-  Subject Alternative Names:
-    → example.com
-    → www.example.com
-
-======================================================================
-[+] Reconnaissance completed
-======================================================================
-```
-
-## Code Structure
-
-```
-recon_tool.py
-├── Data Structures (Dataclasses)
-│   ├── DNSRecord
-│   ├── IPIntel
-│   ├── PortStatus
-│   ├── SSLInfo
-│   ├── WHOISInfo
-│   ├── HeaderInfo
-│   ├── Fingerprint
-│   └── GeoIPData
-├── DNS Module
-│   └── DNSModule class
-├── IP Intelligence Module
-│   └── IPIntelModule class
-├── Socket Scanner Module
-│   └── SocketScannerModule class
-├── Async Port Scanner Module
-│   └── AsyncPortScannerModule class
-├── SSL Certificate Module
-│   └── SSLModule class
-├── WHOIS Module
-│   └── WHOISModule class
-├── Subdomain Enumeration Module
-│   └── SubdomainModule class
-├── HTTP Header Analysis Module
-│   └── HeaderAnalysisModule class
-├── Web Service Fingerprinting Module
-│   └── FingerprintModule class
-├── Export Module
-│   └── ExportModule class
-├── Formatter & CLI
-│   ├── ResultFormatter class
-│   └── main() function
-└── Entry point
-```
-
-## Educational Notes
-
-This tool demonstrates several cybersecurity and networking concepts:
-
-1. **DNS Resolution**: Understanding domain-to-IP mapping
-2. **Network Reconnaissance**: Enumeration of services and configurations
-3. **Socket Programming**: Low-level network communication
-4. **SSL/TLS Security**: Certificate validation and analysis
-5. **Error Handling**: Robust timeout and exception handling
-6. **API Integration**: Consuming third-party JSON APIs
-7. **CLI Design**: Argument parsing and user interface patterns
-8. **Code Modularity**: Separating concerns into distinct modules
-
-## Security & Ethical Considerations
-
-⚠️ **Important**: This tool is for:
-- ✅ Educational purposes
-- ✅ Authorized security testing and penetration testing
-- ✅ Network administrators managing their own infrastructure
-- ✅ CTF (Capture The Flag) competitions
-
-⚠️ **Do NOT use for**:
-- ❌ Unauthorized network scanning
-- ❌ Targeting systems you don't own or have permission to test
-- ❌ DoS/DDoS attacks
-- ❌ Illegal reconnaissance
-
-**Always obtain proper authorization before testing any systems.**
-
-## Timeouts & Performance
-
-- DNS queries: 5 seconds
-- Port scanning (sync): 3 seconds per port (total ~27 seconds for 9 ports)
-- Port scanning (async): ~3-5 seconds total (3x faster with --async-ports)
-- Banner grabbing: 2 seconds per connection
-- SSL certificate retrieval: 10 seconds
-- IP intelligence API: 10 seconds
-- Subdomain enumeration: ~30-60 seconds (depends on domain responsiveness)
-- WHOIS lookup: 5 seconds
-- Header analysis: 5 seconds per protocol attempt
-
-**Total execution time**:
-- Default modules: 30-60 seconds
-- All modules: 2-3 minutes
-- With async ports: 1-2 minutes
-
-## Troubleshooting
-
-### ModuleNotFoundError: No module named 'dns'
-```bash
-pip install dnspython
-```
-
-### Network Error: Connection refused
-- Ensure target is reachable
-- Check firewall rules
-- Verify DNS resolution is working
-
-### SSL Certificate Error: CERTIFICATE_VERIFY_FAILED
-- Normal for self-signed certificates
-- Tool marks certificate as invalid but continues
-
-### Timeout Errors
-- Check network connectivity
-- Verify target domain/IP is valid
-- Try increasing timeout values in source code if network is slow
