@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 ReconTools
+=======
+# Cybersecurity Reconnaissance Tool
+>>>>>>> f67e891 (feat: initial project structure and documentation)
 
 A modular, Python-based tool for comprehensive IP and website analysis. Designed for educational purposes and authorized security testing.
 
@@ -289,3 +293,19 @@ pip install dnspython
 - Async port scanning for speed
 - Export results to JSON/CSV
 - GeoIP mapping visualization
+<<<<<<< HEAD
+=======
+
+## License
+
+Educational use. Follow your local laws and ethical guidelines.
+
+## Contributing
+
+Improvements welcome! Please ensure:
+- Code is well-commented
+- Error handling is robust
+- New modules follow existing patterns
+- Changes are tested
+
+>>>>>>> f67e891 (feat: initial project structure and documentation)
