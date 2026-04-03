@@ -44,8 +44,16 @@ class FingerprintModule:
         headers_str = str(headers_info.raw_headers).lower()
         
         for tech, pattern in FingerprintModule.SIGNATURES.items():
-            if re.search(pattern, headers_str):
+            match = re.search(pattern, headers_str)
+            if match:
                 fp.technologies.append(tech)
+                # Try to extract version. Many headers use Tech/Version or Tech Version.
+                # A simple heuristic check following the match:
+                # E.g., apache/2.4.41 or WordPress 5.8
+                version_pattern = re.compile(rf'{tech}[/\s]([0-9\.]+)', re.IGNORECASE)
+                v_match = version_pattern.search(headers_str)
+                if v_match:
+                    fp.versions[tech] = v_match.group(1).rstrip('.')
         
         # Extract web server
         if headers_info.server:

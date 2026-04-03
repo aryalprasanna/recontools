@@ -72,10 +72,37 @@ class HeaderInfo:
 class Fingerprint:
     """Store web service fingerprinting results"""
     technologies: List[str]
+    versions: Dict[str, str] = field(default_factory=dict)
     cms: Optional[str] = None
     web_server: Optional[str] = None
     programming_language: Optional[str] = None
     frameworks: List[str] = field(default_factory=list)
+
+
+@dataclass
+class CVEMatch:
+    """Store CVE matching information for a discovered technology"""
+    cve_id: str
+    severity: str
+    description: str
+    tech: str
+    version: str
+
+
+@dataclass
+class ScreenshotData:
+    """Store textual web screenshot (title, meta description)"""
+    title: Optional[str] = None
+    description: Optional[str] = None
+    raw_text: Optional[str] = None
+
+
+@dataclass
+class RiskScore:
+    """Store the aggregated risk assessment score"""
+    score: int
+    level: str  # "Low", "Medium", "High", "Critical"
+    factors: List[str] = field(default_factory=list)
 
 
 @dataclass

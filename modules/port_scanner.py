@@ -118,12 +118,13 @@ class SocketScannerModule:
             return None
 
     @staticmethod
-    def scan_common_ports(host: str) -> List[PortStatus]:
+    def scan_common_ports(host: str, target_ports: Optional[List[int]] = None) -> List[PortStatus]:
         """
-        Scan all common ports on a target host.
+        Scan common or specific ports on a target host.
 
         Args:
             host: Target hostname or IP
+            target_ports: Optional list of specific ports to scan
 
         Returns:
             List of PortStatus objects
@@ -131,7 +132,10 @@ class SocketScannerModule:
         results = []
         print(f"\n[*] Scanning {host} for open ports...")
 
-        for port, service in SocketScannerModule.DEFAULT_PORTS.items():
+        ports_to_scan = target_ports if target_ports else list(SocketScannerModule.DEFAULT_PORTS.keys())
+
+        for port in ports_to_scan:
+            service = SocketScannerModule.DEFAULT_PORTS.get(port, f"Port {port}")
             sys.stdout.write(f"\r    Scanning port {port}... ")
             sys.stdout.flush()
 

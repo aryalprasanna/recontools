@@ -29,19 +29,21 @@ class AsyncPortScannerModule:
     }
 
     @staticmethod
-    def scan_common_ports(target_ip: str) -> List[PortStatus]:
+    def scan_common_ports(target_ip: str, target_ports: Optional[List[int]] = None) -> List[PortStatus]:
         """Scan common ports asynchronously."""
         if aiohttp:
-            return asyncio.run(AsyncPortScannerModule._async_scan(target_ip))
+            return asyncio.run(AsyncPortScannerModule._async_scan(target_ip, target_ports))
         else:
             # Fallback to original socket scanner
-            return SocketScannerModule.scan_common_ports(target_ip)
+            return SocketScannerModule.scan_common_ports(target_ip, target_ports)
 
     @staticmethod
-    async def _async_scan(target_ip: str) -> List[PortStatus]:
+    async def _async_scan(target_ip: str, target_ports: Optional[List[int]] = None) -> List[PortStatus]:
         """Async scan implementation."""
         tasks = []
-        for port, service in AsyncPortScannerModule.COMMON_PORTS.items():
+        ports_to_scan = target_ports if target_ports else list(AsyncPortScannerModule.COMMON_PORTS.keys())
+        for port in ports_to_scan:
+            service = AsyncPortScannerModule.COMMON_PORTS.get(port, f"Port {port}")
             task = AsyncPortScannerModule._scan_port(target_ip, port, service)
             tasks.append(task)
         

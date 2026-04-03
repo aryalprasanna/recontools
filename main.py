@@ -22,6 +22,7 @@ from modules.async_port_scan import AsyncPortScannerModule
 from modules.geoip_map import GeoIPModule
 from utils.formatter import ResultFormatter
 from utils.exporter import ExportModule
+from ui.dashboard import ReconDashboard
 
 
 def main():
@@ -52,8 +53,10 @@ def main():
 
     parser.add_argument(
         '-p', '--ports',
-        action='store_true',
-        help='Perform port scanning (default: enabled)'
+        nargs='?',
+        const='all',
+        default=False,
+        help='Perform port scanning. Optionally specify comma-separated list of ports (e.g., -p 80,443)'
     )
 
     parser.add_argument(
@@ -110,6 +113,12 @@ def main():
         help='Run all reconnaissance modules'
     )
 
+    parser.add_argument(
+        '--console',
+        action='store_true',
+        help='Run in console CLI mode instead of TUI'
+    )
+
     args = parser.parse_args()
 
     # Determine which modules to run
@@ -123,7 +132,7 @@ def main():
         
         run_dns = args.dns or (not any_flag)
         run_ip = args.ip_intel or (not any_flag)
-        run_ports = args.ports or (not any_flag)
+        run_ports = bool(args.ports) or (not any_flag)
         run_ssl = args.ssl or (not any_flag)
         run_whois = args.whois
         run_subdomains = args.subdomains
@@ -132,6 +141,32 @@ def main():
 
     target = args.target
     results = {}
+    
+    # Handle custom port list mapping
+    custom_ports = None
+    if isinstance(args.ports, str) and args.ports != 'all':
+        custom_ports = [int(p.strip()) for p in args.ports.split(',') if p.strip().isdigit()]
+
+    options = {
+        "dns": run_dns,
+        "ip_intel": run_ip,
+        "ports": run_ports,
+        "ports_list": custom_ports,
+        "async_ports": args.async_ports,
+        "ssl": run_ssl,
+        "whois": run_whois,
+        "subdomains": run_subdomains,
+        "headers": run_headers,
+        "fingerprint": run_fingerprint,
+        "export": args.export,
+        "output": args.output
+    }
+
+    # If --console is not passed, launch TUI
+    if not args.console:
+        app = ReconDashboard(target=target, options=options)
+        app.run()
+        return
 
     # Display banner
     ResultFormatter.print_header(f"RECONNAISSANCE: {target}")
